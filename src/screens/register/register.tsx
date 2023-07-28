@@ -21,7 +21,7 @@ const RegisterComponent = () => {
 	const dispatch = useDispatch();
 	const navigation = useNavigation<NativeStackNavigationProp<ParamListBase>>();
 
-	const [email, setEmail] = useState<string>('saad@gmail.com');
+	const [email, setEmail] = useState<string>('');
 	const [name, setName] = useState<string>('teacher');
 	const [password, setPassword] = useState<any>();
 	const [confirmPassword, setConfirmPassword] = useState<any>();

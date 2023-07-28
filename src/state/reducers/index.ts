@@ -8,7 +8,7 @@ import { entitiesReducer } from './entities';
 const entityPersistConfig = {
 	key: 'entities',
 	storage: AsyncStorage,
-	whitelist: ['teacherAppointment'],
+	whitelist: ['teacherAppointment', 'authn'],
 };
 
 const rootReducer = combineReducers({
