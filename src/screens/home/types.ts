@@ -26,3 +26,8 @@ type NewAppointment = {
 type Appointment = {
 	schedule?: ScheduleItem[];
 };
+
+type FlatListProp = {
+	item: isTypeObject;
+	index: number;
+};

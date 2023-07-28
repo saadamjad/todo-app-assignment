@@ -17,7 +17,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 const LoginComponent = () => {
 	const navigation = useNavigation<NativeStackNavigationProp<ParamListBase>>();
 	const dispatch = useDispatch();
-	const [email, setEmail] = useState<string>();
+	const [email, setEmail] = useState<string>('');
 	const [password, setPassword] = useState<string>('');
 	const [error, setError] = useState<string>('');
 	const allUsers = useSelector(getUsers);

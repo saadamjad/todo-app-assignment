@@ -7,9 +7,11 @@ import {
 	AppointmentItem,
 	Heading,
 } from './styled';
-import { Text } from 'react-native';
-
+import { FlatList, Text } from 'react-native';
 import { getLoggedInUserData } from '../../state/selectors/entities/authn';
+import { getAllTeacherAppointments } from '../../state/selectors/entities/teacher-appointments';
+import { addTeacherAppointments, deleteAppointment } from '../../state/actions';
+import { AppButton, DateTimePicker } from '../../components';
 import { useDispatch, useSelector } from 'react-redux';
 import { IS_TEACHER } from '../../constants/common';
 import { ErrorText } from '../login/styled';
@@ -18,10 +20,6 @@ import {
 	getDayNameFromDate,
 	getTimeFromDate,
 } from '../../utils/helper/helper';
-import { AppButton } from '../../components/app-button';
-import { DateTimePicker } from '../../components/date-time-picker';
-import { addTeacherAppointments, deleteAppointment } from '../../state/actions';
-import { getAllTeacherAppointments } from '../../state/selectors/entities/teacher-appointments';
 
 const HomeScreen: React.FC = () => {
 	const allAppointments = useSelector(getAllTeacherAppointments);
@@ -67,24 +65,64 @@ const HomeScreen: React.FC = () => {
 		});
 		const data = [...allAppointments, newAppointment];
 		appointmentIsAlreadyExist
-			? setError('Please Select Another Slot')
-			: dispatch(addTeacherAppointments(data));
+			? setError('You Already Booked this Slot! \n Please Select Another Slot')
+			: (dispatch(addTeacherAppointments(data)), setError(''));
 	};
 
-	const renderStudentComponent = () => (
+	const renderITem = ({ item, index }: FlatListProp) => (
+		<AppointmentItem key={index}>
+			<Text>{item?.name}</Text>
+			<Text>Time: {item?.email}</Text>
+			{item?.schedule?.map((val: isTypeObject, i: number) => (
+				<React.Fragment key={i}>
+					<Text>Schedule: </Text>
+					<Text>date: {val?.date?.toString()}</Text>
+					<Text>day: {val?.day}</Text>
+					<Text>start time: {val?.time?.start?.value?.toString()}</Text>
+					<Text>end time: {val?.time?.end?.value}</Text>
+					{val.available ? (
+						<Text
+							style={{
+								backgroundColor: 'gray',
+								color: 'white',
+								fontWeight: 'bold',
+								marginVertical: 10,
+							}}>
+							{' '}
+							Slot Availale{' '}
+						</Text>
+					) : (
+						<Text style={{ backgroundColor: 'red' }}>Booked </Text>
+					)}
+				</React.Fragment>
+			))}
+		</AppointmentItem>
+	);
+	const renderAppointments = () => (
+		<FlatList
+			data={allAppointments}
+			renderItem={renderITem}
+			keyExtractor={(item) => item.id}
+		/>
+	);
+
+	const renderStudentPanel = () => (
 		<Container>
 			<Heading>Student Portal</Heading>
 
 			<AppointmentsList>
 				<Heading> list of all teacher apointments</Heading>
+				{renderAppointments()}
 			</AppointmentsList>
 		</Container>
 	);
 
 	const removeAppointments = () => {
 		dispatch(deleteAppointment());
+		setError('');
 	};
-	return isTeacherPanel ? (
+
+	const renderTeacherPanel = () => (
 		<Container>
 			<DateTimePicker
 				mode={'date'}
@@ -116,39 +154,10 @@ const HomeScreen: React.FC = () => {
 				onPress={removeAppointments}
 			/>
 			{error ? <ErrorText>{error}</ErrorText> : null}
-			{allAppointments?.length > 0 && (
-				<AppointmentsList>
-					<Heading>Appointments:</Heading>
-					{allAppointments?.map((val: NewAppointment, index: number) => (
-						<AppointmentItem key={index}>
-							<Text>{val?.name}</Text>
-							<Text>Time: {val?.email}</Text>
-							{val?.schedule?.map((item, i) => (
-								<React.Fragment key={i}>
-									<Text>Schedule: </Text>
-									{/* {item?.date && (
-										<Text>date: {item?.date || selectedDate}</Text>
-									)} */}
-									<Text>date: {item?.date?.toString()}</Text>
-									<Text>day: {item?.day}</Text>
-									<Text>
-										start time: {item?.time?.start?.value?.toString()}
-									</Text>
-									<Text>end time: {item?.time?.end?.value}</Text>
-									<AppButton
-										onPress={() => {}}
-										name='available'
-									/>
-								</React.Fragment>
-							))}
-						</AppointmentItem>
-					))}
-				</AppointmentsList>
-			)}
+			{renderAppointments()}
 		</Container>
-	) : (
-		renderStudentComponent()
 	);
+	return isTeacherPanel ? renderTeacherPanel() : renderStudentPanel();
 };
 
 export default React.memo(HomeScreen);
