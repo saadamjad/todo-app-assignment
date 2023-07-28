@@ -1,44 +1,44 @@
 /** @format */
 
 import React, { useState } from 'react';
-import { Button, ButtonText, Container, ErrorText, Input } from './styled';
+import { Container, ErrorText, Input } from './styled';
 import { ROUTES } from '../../constants/navigation-routes';
 import { useDispatch, useSelector } from 'react-redux';
 import { getUsers } from '../../state/selectors/entities/authn';
 import { loginUser } from '../../state/actions';
+import { AppButton } from '../../components/app-button';
+import {
+	checkIsTeacherAvailale,
+	checkStudentAvailale,
+} from '../../utils/helper/helper';
+import { ParamListBase, useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-const LoginComponent = ({ navigation }) => {
+const LoginComponent = () => {
+	const navigation = useNavigation<NativeStackNavigationProp<ParamListBase>>();
 	const dispatch = useDispatch();
-	const [email, setEmail] = useState('saad@gmail.com');
-	const [password, setPassword] = useState('12345');
-	const [error, setError] = useState('');
+	const [email, setEmail] = useState<string>();
+	const [password, setPassword] = useState<string>('');
+	const [error, setError] = useState<string>('');
 	const allUsers = useSelector(getUsers);
-	const isTeacherAvailable = allUsers.teachers.some((e) => e.email == email);
-	const isStudentAvailale = allUsers.students.some((e) => e.email == email);
-	const teacherData = allUsers.teachers.find((e) => e.email == email);
-	const studentData = allUsers.students.find((e) => e.email == email);
 
+	// all logics
 	const handleLogin = () => {
 		if (!email || !password) {
 			setError('Please fill in all fields.');
 		} else {
-			if (isTeacherAvailable) {
-				const requestData = { ...teacherData, type: 1 };
-				dispatch(loginUser(requestData));
-				navigation.navigate(ROUTES.HOME);
-			}
-			if (isStudentAvailale) {
-				const requestData = { ...studentData, type: 2 };
-				dispatch(loginUser(requestData));
-				navigation.navigate(ROUTES.HOME);
-			}
-
-			setEmail('');
-			setPassword('');
-			setError('No data found');
+			console.log(checkIsTeacherAvailale(allUsers, email));
+			console.log(checkStudentAvailale(allUsers, email));
+			checkIsTeacherAvailale(allUsers, email) ||
+			checkStudentAvailale(allUsers, email) ? (
+				<>{dispatch(loginUser({ email }))}</>
+			) : (
+				(setError('No data found'), setEmail(''), setPassword(''))
+			);
 		}
 	};
 
+	const navigationHandler = () => navigation.navigate(ROUTES.REGISTER);
 	return (
 		<Container>
 			{error ? <ErrorText>{error}</ErrorText> : null}
@@ -55,9 +55,15 @@ const LoginComponent = ({ navigation }) => {
 				onChangeText={(text) => setPassword(text)}
 				secureTextEntry
 			/>
-			<Button onPress={handleLogin}>
-				<ButtonText>Login</ButtonText>
-			</Button>
+
+			<AppButton
+				onPress={handleLogin}
+				name='Login'
+			/>
+			<AppButton
+				onPress={navigationHandler}
+				name='Go to the Register Page'
+			/>
 		</Container>
 	);
 };

@@ -3,95 +3,152 @@
 import React, { useState } from 'react';
 import {
 	Container,
-	Button,
-	ButtonText,
-	TeacherContainer,
-	TeacherText,
 	AppointmentsList,
 	AppointmentItem,
 	Heading,
 } from './styled';
 import { Text } from 'react-native';
 
+import { getLoggedInUserData } from '../../state/selectors/entities/authn';
+import { useDispatch, useSelector } from 'react-redux';
+import { IS_TEACHER } from '../../constants/common';
+import { ErrorText } from '../login/styled';
 import {
-	getLoggedInUserData,
-	getUsers,
-} from '../../state/selectors/entities/authn';
-import { useSelector } from 'react-redux';
+	generateId,
+	getDayNameFromDate,
+	getTimeFromDate,
+} from '../../utils/helper/helper';
+import { AppButton } from '../../components/app-button';
+import { DateTimePicker } from '../../components/date-time-picker';
+import { addTeacherAppointments, deleteAppointment } from '../../state/actions';
+import { getAllTeacherAppointments } from '../../state/selectors/entities/teacher-appointments';
 
 const HomeScreen: React.FC = () => {
-	const [appointments, setAppointments] = useState<Appointment[]>([]);
+	const allAppointments = useSelector(getAllTeacherAppointments);
+	const dispatch = useDispatch();
+
 	const loggedInUser = useSelector(getLoggedInUserData);
-	const isTeacher = loggedInUser.type === 1;
-	const teachersData: TeacherData[] = [
-		{
-			id: '1d413197-a48c-4537-9820-00d9b8d70181',
-			name: 'testteacher1',
-			email: 'testteacher1@email.com',
-			password: '123456',
+	const [selectedDate, setSelectedDate] = useState(new Date());
+	const [selectedTime, setSelectedTime] = useState(new Date());
+	const [error, setError] = useState('');
+
+	const { email, password, name, userType } = loggedInUser;
+	const isTeacherPanel = userType === IS_TEACHER;
+
+	const handleCreateAppointment = () => {
+		const newAppointment: NewAppointment = {
+			id: generateId(),
+			name,
+			email,
+			password,
 			schedule: [
 				{
-					day: 'Monday',
+					date: selectedDate,
+					available: true,
+					day: getDayNameFromDate(selectedDate),
 					time: {
 						start: {
-							value: '10:00',
-							meridian: 'AM',
+							value: getTimeFromDate(selectedTime),
 						},
 						end: {
-							value: '05:00',
-							meridian: 'PM',
+							value: getTimeFromDate(selectedTime),
 						},
 					},
 				},
 			],
-			available: true,
-		},
-	];
-
-	const handleCreateAppointment = (teacher: TeacherData) => {
-		const newAppointment: Appointment = {
-			id: Math.random().toString(),
-			teacher,
-			appointmentTime: 'Monday 10:30 AM',
 		};
 
-		setAppointments([...appointments, newAppointment]);
+		let appointmentIsAlreadyExist = false;
+
+		allAppointments?.map((item: isTypeObject, _i: number) => {
+			if (item?.schedule?.some((e: isTypeObject) => e?.date === selectedDate)) {
+				appointmentIsAlreadyExist = true;
+			}
+		});
+		const data = [...allAppointments, newAppointment];
+		appointmentIsAlreadyExist
+			? setError('Please Select Another Slot')
+			: dispatch(addTeacherAppointments(data));
 	};
 
-	const renderTeacherComponent = () => (
+	const renderStudentComponent = () => (
 		<Container>
-			{teachersData?.map((teacher) => (
-				<TeacherContainer key={teacher.id}>
-					<TeacherText>{teacher.name}</TeacherText>
-					<Button onPress={() => handleCreateAppointment(teacher)}>
-						<ButtonText>Book Appointment</ButtonText>
-					</Button>
-				</TeacherContainer>
-			))}
+			<Heading>Student Portal</Heading>
 
-			{appointments.length > 0 && (
+			<AppointmentsList>
+				<Heading> list of all teacher apointments</Heading>
+			</AppointmentsList>
+		</Container>
+	);
+
+	const removeAppointments = () => {
+		dispatch(deleteAppointment());
+	};
+	return isTeacherPanel ? (
+		<Container>
+			<DateTimePicker
+				mode={'date'}
+				setter={(e: isTypeObject) => setSelectedDate(e)}
+				value={selectedDate}
+			/>
+
+			<DateTimePicker
+				mode={'time'}
+				setter={(e: isTypeObject) => setSelectedTime(e)}
+				value={selectedTime}
+			/>
+			<Text
+				style={{
+					borderWidth: 0.1,
+					paddingHorizontal: 10,
+					paddingVertical: 10,
+				}}>
+				{getDayNameFromDate(selectedDate)}
+			</Text>
+
+			<AppButton
+				name='Create Appointment'
+				onPress={handleCreateAppointment}
+			/>
+
+			<AppButton
+				name='Delete All pointments'
+				onPress={removeAppointments}
+			/>
+			{error ? <ErrorText>{error}</ErrorText> : null}
+			{allAppointments?.length > 0 && (
 				<AppointmentsList>
 					<Heading>Appointments:</Heading>
-					{appointments?.map((appointment) => (
-						<AppointmentItem key={appointment.id}>
-							<Text>{appointment.teacher.name}</Text>
-							<Text>Time: {appointment.appointmentTime}</Text>
+					{allAppointments?.map((val: NewAppointment, index: number) => (
+						<AppointmentItem key={index}>
+							<Text>{val?.name}</Text>
+							<Text>Time: {val?.email}</Text>
+							{val?.schedule?.map((item, i) => (
+								<React.Fragment key={i}>
+									<Text>Schedule: </Text>
+									{/* {item?.date && (
+										<Text>date: {item?.date || selectedDate}</Text>
+									)} */}
+									<Text>date: {item?.date?.toString()}</Text>
+									<Text>day: {item?.day}</Text>
+									<Text>
+										start time: {item?.time?.start?.value?.toString()}
+									</Text>
+									<Text>end time: {item?.time?.end?.value}</Text>
+									<AppButton
+										onPress={() => {}}
+										name='available'
+									/>
+								</React.Fragment>
+							))}
 						</AppointmentItem>
 					))}
 				</AppointmentsList>
 			)}
 		</Container>
+	) : (
+		renderStudentComponent()
 	);
-	const renderStudentComponent = () => (
-		<Container>
-			<Heading>Student loggedIn</Heading>
-
-			<AppointmentsList>
-				<Heading> All Teacher</Heading>
-			</AppointmentsList>
-		</Container>
-	);
-	return isTeacher ? renderTeacherComponent() : renderStudentComponent();
 };
 
 export default React.memo(HomeScreen);

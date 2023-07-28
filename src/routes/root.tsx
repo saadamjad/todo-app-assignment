@@ -9,7 +9,7 @@ const { Screen, Navigator } = createNativeStackNavigator();
 
 export const RootNavigation = () => {
 	return (
-		<Navigator initialRouteName={ROUTES.REGISTER}>
+		<Navigator initialRouteName={ROUTES.LOGIN}>
 			<Screen
 				name={ROUTES.SPLASH}
 				component={Splash}

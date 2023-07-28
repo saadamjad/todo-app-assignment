@@ -15,17 +15,6 @@ export const Input = styled.TextInput`
   padding: 10px;
 `;
 
-export const Button = styled.TouchableOpacity`
-  background-color: #4caf50;
-  padding: 10px 20px;
-  border-radius: 5px;
-`;
-
-export const ButtonText = styled.Text`
-  color: #fff;
-  font-weight: bold;
-`;
-
 export const ErrorText = styled.Text`
   color: red;
   margin-bottom: 10px;

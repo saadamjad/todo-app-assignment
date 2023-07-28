@@ -2,11 +2,15 @@
 
 export const USER_TYPE = [
 	{
-		key: '1',
-		value: 'Teacher',
+		label: 'Teacher',
+		id: 1,
 	},
 	{
-		key: '2',
-		value: 'Student',
+		label: 'Student',
+		id: 2,
 	},
 ];
+
+export const IS_TEACHER = 1;
+export const IS_STUDENT = 2;
+

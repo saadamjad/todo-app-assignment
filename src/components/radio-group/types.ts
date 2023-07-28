@@ -1,10 +1,10 @@
 interface Option {
-  label: string;
-  value: boolean | null;
+	label: string;
+	id: number;
 }
 
 export interface RadioGroupProps {
-  options: Option[];
-  selectedValue: string | null;
-  onValueChange: (value: string) => void;
+	options: Option[];
+	selectedValue: number;
+	onValueChange: (value: number) => void;
 }

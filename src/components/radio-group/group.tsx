@@ -23,11 +23,10 @@ export const RadioGroup: React.FC<RadioGroupProps> = ({
 		<RadioGroupWrapper>
 			{options?.map((option: any) => (
 				<RadioButtonWrapper
-					key={option.value}
-					testID={'filter-' + option.label}
-					onPress={() => handleOptionChange(option.value)}>
+					key={option.id}
+					onPress={() => handleOptionChange(option.id)}>
 					<RadioButtonOuterCircle>
-						{selectedValue === option.value && <RadioButtonInnerCircle />}
+						{selectedValue === option.id && <RadioButtonInnerCircle />}
 					</RadioButtonOuterCircle>
 					<RadioButtonLabel>{option.label}</RadioButtonLabel>
 				</RadioButtonWrapper>
@@ -36,4 +35,4 @@ export const RadioGroup: React.FC<RadioGroupProps> = ({
 	);
 };
 
-export default RadioGroup;
+export default React.memo(RadioGroup);

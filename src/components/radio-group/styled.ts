@@ -4,6 +4,7 @@ import styled from 'styled-components/native';
 
 export const RadioGroupWrapper = styled.View`
 	flex-direction: row;
+	margin-bottom: 30px;
 `;
 
 export const RadioButtonWrapper = styled.TouchableOpacity`

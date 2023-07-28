@@ -1,57 +1,77 @@
 /** @format */
 
-import React, { useEffect, useState } from 'react';
-import { Button, ButtonText, Container, ErrorText, Input } from './styled';
+import React, { useState } from 'react';
+import { Container, ErrorText, Input } from './styled';
 import { registerUser } from '../../state/actions';
 import { useDispatch, useSelector } from 'react-redux';
 import { ROUTES } from '../../constants/navigation-routes';
 import { RadioGroup } from '../../components';
+import { IS_TEACHER, USER_TYPE } from '../../constants/common';
+import { getUsers } from '../../state/selectors/entities/authn';
+import {
+	checkIsTeacherAvailale,
+	checkStudentAvailale,
+	generateRandomNumberId,
+} from '../../utils/helper/helper';
+import { AppButton } from '../../components/app-button';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { ParamListBase, useNavigation } from '@react-navigation/native';
 
-function generateRandomNumberId(length = 8) {
-	const min = Math.pow(10, length - 1);
-	const max = Math.pow(10, length) - 1;
-	return Math.floor(Math.random() * (max - min + 1) + min);
-}
-
-const RegisterComponent = ({ navigation }) => {
+const RegisterComponent = () => {
 	const dispatch = useDispatch();
+	const navigation = useNavigation<NativeStackNavigationProp<ParamListBase>>();
 
-	const [email, setEmail] = useState('saad@gmail.com');
-	const [name, setName] = useState('teacher');
-	const [password, setPassword] = useState('12345');
-	const [confirmPassword, setConfirmPassword] = useState('12345');
-	const [error, setError] = useState('');
+	const [email, setEmail] = useState<string>('saad@gmail.com');
+	const [name, setName] = useState<string>('teacher');
+	const [password, setPassword] = useState<any>();
+	const [confirmPassword, setConfirmPassword] = useState<any>();
+	const [userType, setUserType] = useState<number>(IS_TEACHER);
+	const [error, setError] = useState<string>('');
+	const allUsers = useSelector(getUsers);
 
 	const handleRegister = () => {
-		const id = generateRandomNumberId();
 		if (!email || !password || !confirmPassword) {
 			setError('Please fill in all fields.');
 		} else if (password !== confirmPassword) {
 			setError('Passwords do not match.');
 		} else {
 			const requestData = {
-				id,
+				id: generateRandomNumberId(),
 				name,
 				email,
 				password,
 				confirmPassword,
+				userType,
 			};
-			dispatch(registerUser(requestData));
-			navigation.navigate(ROUTES.LOGIN);
 
-			setError('');
-			setEmail('');
-			setPassword('');
-			setConfirmPassword('');
+			checkIsTeacherAvailale(allUsers, email) ? (
+				setError('Email Already Registered as Teacher')
+			) : checkStudentAvailale(allUsers, email) ? (
+				setError('Email Already Registered as Student')
+			) : (
+				<>
+					{
+						((dispatch(registerUser(requestData)),
+						setError(''),
+						setEmail(''),
+						setPassword(''),
+						setConfirmPassword('')),
+						navigation.navigate(ROUTES.LOGIN))
+					}
+				</>
+			);
 		}
 	};
+
+	const navigationHandler = () => navigation.navigate(ROUTES.LOGIN);
 
 	return (
 		<Container>
 			{error ? <ErrorText>{error}</ErrorText> : null}
 			<RadioGroup
-				options={[{ value: 'teacher' }, { value: 'student' }]}
-				onValueChange={(e) => console.log(e)}
+				selectedValue={userType}
+				options={USER_TYPE}
+				onValueChange={(e: number) => setUserType(e)}
 			/>
 
 			<Input
@@ -78,9 +98,15 @@ const RegisterComponent = ({ navigation }) => {
 				onChangeText={(text) => setConfirmPassword(text)}
 				secureTextEntry
 			/>
-			<Button onPress={handleRegister}>
-				<ButtonText>Register</ButtonText>
-			</Button>
+
+			<AppButton
+				onPress={handleRegister}
+				name='Register'
+			/>
+			<AppButton
+				onPress={navigationHandler}
+				name='Already have an account? Go to the signin page'
+			/>
 		</Container>
 	);
 };
